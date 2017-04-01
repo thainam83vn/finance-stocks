@@ -3,10 +3,21 @@ from pymongo import MongoClient
 
 client = MongoClient()
 db = client['finance']
-stockColl = db["stocks"]
-logger = db['logs']
-transactionColl = db['transactions']
+colStocks = db["stocks"]
+colLogs = db['logs']
+colTransactions = db['transactions']
 
-yahoo = Share('YHOO')
+stocks = colStocks.find({},{'_id':0,'Symbol': 1})
+i = 0
+for stock in stocks:
+    symbol = stock["Symbol"]
+    stock["Share"] = Share(symbol)
+    print stock["Share"].get_price()
+    i = i + 1
+    if i > 10:
+        break
 
-print yahoo.get_price()
+
+#yahoo = Share('YHOO')
+
+#print yahoo.get_price()

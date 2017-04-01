@@ -1,6 +1,5 @@
-import csvapi
-import web3
 from pymongo import MongoClient
+import requests
 import time
 import datetime
 
@@ -21,6 +20,23 @@ tradeTimes = {}
 for doc in cursor:
     stocks = stocks + [doc]
 
+def csvToList(columns, content):
+    lines = content.split('\n')
+    result = []
+    for line in lines:
+        arr = line.split(',')
+        row = {}
+
+        if len(arr) == len(columns):
+            for i in range(0, len(columns)):
+                row[COLUMNs[i]] = arr[i]
+            result = result + [row]
+    return result
+
+def download(url):
+    page = requests.get(url)
+    return page._content
+
 def updateMarket():
     i = 0
     while i < len(stocks):
@@ -29,11 +45,12 @@ def updateMarket():
             noStocks = len(stocks) - 1 - i
         arr = stocks[i:noStocks]
         stockNames = ','.join(d["Symbol"] for d in arr)
-        url = URL_UPDATE_MARKET.format(stocks = stockNames)
+        url = URL_UPDATE_MARKET.format(stocks = stockNames)        
         print(datetime.datetime.now(), ": call from ", i, " to ", i + noStocks)
-        data = web3.download(url)
+        content = download(url)
+
         print(datetime.datetime.now(), ": updating to db")
-        list = csvapi.csvToList(COLUMNs, data)
+        list = csvToList(COLUMNs, content)
         for item in list:
             if item['Symbol'] in tradeTimes:
                 if tradeTimes[item['Symbol']] != item['TradeTime']:
